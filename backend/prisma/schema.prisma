@@ -1,0 +1,136 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  MODERATOR
+  USER
+}
+
+model User {
+  uuid          String          @id @default(cuid())
+  username      String          @unique
+  password      String
+  email         String          @unique
+  name          String? //pada edit profil
+  bio           String? //pada edit profil
+  avatar        String?
+  dateJoined    DateTime        @default(now()) //default saat create
+  role          Role            @default(USER) //default saat create
+  topic         Topics[]
+  Forums        Forums[]
+  Questions     Questions[]
+  Comments      Comments[]
+  QuestionVotes QuestionVotes[]
+  CommentVotes  CommentVotes[]
+  user          Follows[]       @relation("User")
+  following     Follows[]       @relation("Following")
+  Membership    Membership[]
+}
+
+model Topics {
+  uuid          String      @id @default(cuid())
+  name          String      @unique
+  slug          String
+  createdAt     DateTime    @default(now())
+  createdBy     User        @relation(fields: [createdByUser], references: [uuid])
+  createdByUser String
+  Questions     Questions[]
+}
+
+model Forums {
+  uuid        String       @id @default(cuid())
+  name        String       @unique
+  slug        String
+  description String       @db.Text
+  createdAt   DateTime     @default(now())
+  UserId      String
+  createdBy   User         @relation(fields: [UserId], references: [uuid])
+  Questions   Questions[]
+  Membership  Membership[]
+}
+
+model Questions {
+  uuid      String   @id @default(cuid())
+  title     String
+  body      String
+  slug      String
+  createdAt DateTime @default(now())
+  imageUrl  String? // Field untuk menyimpan URL gambar dari Cloudinary
+  forumID   String?
+  topicsID  String? // Field ini diisi nanti diquestions yang didalam forum
+  UserId    String
+  createdBy User     @relation(fields: [UserId], references: [uuid])
+
+  forum         Forums?         @relation(fields: [forumID], references: [uuid])
+  topic         Topics?         @relation(fields: [topicsID], references: [uuid])
+  Comments      Comments[]
+  QuestionVotes QuestionVotes[]
+}
+
+model QuestionVotes {
+  uuid       String   @id @default(cuid())
+  questionId String
+  userId     String
+  role       VoteRole
+  createdAt  DateTime @default(now())
+
+  question Questions @relation(fields: [questionId], references: [uuid])
+  user     User      @relation(fields: [userId], references: [uuid])
+}
+
+enum VoteRole {
+  VOTE
+  DOWNVOTE
+}
+
+model Comments {
+  uuid         String         @id @default(cuid())
+  body         String
+  commentedAt  DateTime       @default(now())
+  userId       String
+  questionId   String
+  commentedBy  User           @relation(fields: [userId], references: [uuid])
+  question     Questions      @relation(fields: [questionId], references: [uuid])
+  CommentVotes CommentVotes[]
+}
+
+model CommentVotes {
+  uuid      String   @id @default(cuid())
+  commentId String
+  userId    String
+  role      VoteRole
+  createdAt DateTime @default(now())
+
+  comment Comments @relation(fields: [commentId], references: [uuid])
+  user    User     @relation(fields: [userId], references: [uuid])
+}
+
+model Follows {
+  uuid        String @id @default(cuid())
+  userId      String
+  followingId String
+
+  user      User @relation("User", fields: [userId], references: [uuid])
+  following User @relation("Following", fields: [followingId], references: [uuid])
+}
+
+model Membership {
+  uuid      String   @id @default(cuid())
+  forumId   String
+  userId    String
+  createdAt DateTime @default(now())
+  Forum     Forums   @relation(fields: [forumId], references: [uuid])
+  User      User     @relation(fields: [userId], references: [uuid])
+}
