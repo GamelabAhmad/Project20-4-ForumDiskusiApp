@@ -59,6 +59,7 @@ const findQuestionByTitle = async (title) => {
       createdBy: true,
       topic:true,
       QuestionVotes: true,
+      forum: true
     },
 
   });
@@ -67,9 +68,23 @@ const findQuestionByTitle = async (title) => {
 
 const editQuestion = async (questionId, data, file, slugData, topicId) => {
   try {
-    let imageUrl = "";
+    // Fetch the existing question data
+    const existingQuestion = await prisma.questions.findUnique({
+      where: {
+        uuid: questionId,
+      },
+      include: {
+        topic: true,
+      },
+    });
 
-    // Upload image to Cloudinary if file exists
+    if (!existingQuestion) {
+      throw new Error("Question not found");
+    }
+
+    let imageUrl = existingQuestion.imageUrl;
+
+    // Upload image to Cloudinary if a new file is provided
     if (file) {
       const response = await cloudinary.uploader.upload(file.tempFilePath, {
         folder: "questions",
@@ -79,18 +94,16 @@ const editQuestion = async (questionId, data, file, slugData, topicId) => {
     }
 
     const updatedData = {
-      title: data.title,
-      body: data.body,
-      slug: slugData,
+      title: data.title || existingQuestion.title,
+      body: data.body || existingQuestion.body,
+      slug: slugData || existingQuestion.slug,
       imageUrl: imageUrl,
-      topic: { connect: { uuid: topicId } },
+      topic: { connect: { uuid: topicId || existingQuestion.topic.uuid } },
     };
 
     const question = await prisma.questions.update({
       where: {
         uuid: questionId,
-      }, include:{
-        topic:true,
       },
       data: updatedData,
     });
@@ -100,7 +113,6 @@ const editQuestion = async (questionId, data, file, slugData, topicId) => {
     throw new Error("Failed to edit question: " + error.message);
   }
 };
-
 // Find question by id
 const findQuestionById = async (questionId) => {
   const question = await prisma.questions.findUnique({
@@ -111,6 +123,7 @@ const findQuestionById = async (questionId) => {
       createdBy: true,
       topic:true,
       QuestionVotes: true,
+      forum: true
     },
   });
   return question;
@@ -123,6 +136,7 @@ const getQuestion = async () => {
       createdBy: true,
       topic:true,
       QuestionVotes: true,
+      forum: true
     },
   });
   return question;
@@ -132,12 +146,29 @@ const getQuestion = async () => {
 // Delete question
 const deleteQuestion = async (questionId) => {
   try {
-    await prisma.questions.delete({
+    await prisma.commentVotes.deleteMany({
+      where: {
+        comment: {
+          questionId: questionId,
+        },
+      },
+    });
+    await prisma.comments.deleteMany({
+      where: {
+        questionId: questionId
+      }
+    })
+    await prisma.questionVotes.deleteMany({
+      where: {
+        questionId: questionId,
+      },
+    });
+    const question = await prisma.questions.delete({
       where: {
         uuid: questionId,
       },
     });
-    return { message: "Question deleted successfully" };
+    return { message: "Question deleted successfully", question };
   } catch (error) {
     throw new Error("Failed to delete question: " + error.message);
   }

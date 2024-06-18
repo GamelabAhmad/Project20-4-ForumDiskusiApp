@@ -4,6 +4,7 @@ const {
   handleUnfollowUser,
   handleGetFollowing,
   handleGetFollowers,
+  handleIsUserFollowed
 } = require("../controllers/controllerFollow");
 const { auth } = require("../middlewares/auth");
 const router = express.Router();
@@ -13,10 +14,12 @@ router.delete("/unfollow/:id", auth, handleUnfollowUser);
 
 router.get("/followers/:id", handleGetFollowers);
 router.get("/following/:id", handleGetFollowing);
+router.get("/isFollowed/:id", auth, handleIsUserFollowed);
+
 
 /**
  * @swagger
- * /follow/{id}:
+ * /follow/{userId}:
  *   post:
  *     summary: Follow a user
  *     tags:
@@ -25,7 +28,7 @@ router.get("/following/:id", handleGetFollowing);
  *       - BearerAuth: []
  *     parameters:
  *       - in: path
- *         name: id
+ *         name: userId
  *         required: true
  *         description: ID of the user to follow
  *         schema:
@@ -42,7 +45,7 @@ router.get("/following/:id", handleGetFollowing);
 
 /**
  * @swagger
- * /unfollow/{id}:
+ * /unfollow/{userId}:
  *   delete:
  *     summary: Unfollow a user
  *     tags:
@@ -51,7 +54,7 @@ router.get("/following/:id", handleGetFollowing);
  *       - BearerAuth: []
  *     parameters:
  *       - in: path
- *         name: id
+ *         name: userId
  *         required: true
  *         description: ID of the user to unfollow
  *         schema:
@@ -68,33 +71,43 @@ router.get("/following/:id", handleGetFollowing);
 
 /**
  * @swagger
- * /followers:
+ * /followers/{userId}:
  *   get:
- *     summary: Get followers of the authenticated user
+ *     summary: Get followers of the user
  *     tags:
  *       - Follow
- *     security:
- *       - BearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         description: ID of the user 
+ *         schema:
+ *           type: string
+ *           example: clxeeow630000jtn5rrsnqav3
  *     responses:
  *       200:
  *         description: List of followers
- *       401:
- *         description: Unauthorized
+ *       400:
+ *         description: Bad request
  */
 
 /**
  * @swagger
- * /following:
+ * /following/{userId}:
  *   get:
- *     summary: Get users followed by the authenticated user
+ *     summary: Get folwing of the user
  *     tags:
  *       - Follow
- *     security:
- *       - BearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         description: ID of the user 
+ *         schema:
+ *           type: string
+ *           example: clxeeow630000jtn5rrsnqav3
  *     responses:
  *       200:
- *         description: List of following users
- *       401:
- *         description: Unauthorized
+ *         description: List of following
+ *       400:
+ *         description: Bad request
  */
 module.exports = router;
