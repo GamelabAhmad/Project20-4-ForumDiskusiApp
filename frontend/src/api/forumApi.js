@@ -5,7 +5,7 @@ export async function getForums() {
   try {
     const response = await axios({
       method: "get",
-      url: "http://localhost:3000/forums",
+      url: "https://api-msib-6-forum-diskusi-04.educalab.id/forums",
       headers: { "Content-Type": "application/json" },
     });
     return response.data;
@@ -18,7 +18,7 @@ export async function getForumById(id) {
   try {
     const response = await axios({
       method: "get",
-      url: `http://localhost:3000/forum/${id}`,
+      url: `https://api-msib-6-forum-diskusi-04.educalab.id/forum/${id}`,
       headers: { "Content-Type": "application/json" },
     });
     return response.data;
@@ -33,7 +33,7 @@ export async function createForum(data) {
   try {
     const response = await axios({
       method: "post",
-      url: `http://localhost:3000/forum`,
+      url: `https://api-msib-6-forum-diskusi-04.educalab.id/forum`,
       data: data,
       headers: {
         "Content-Type": "application/json",
@@ -52,7 +52,7 @@ export async function updateForum(id, data) {
   try {
     const response = await axios({
       method: "put",
-      url: `http://localhost:3000/forum/${id}`,
+      url: `https://api-msib-6-forum-diskusi-04.educalab.id/forum/${id}`,
       data: data,
       headers: {
         "Content-Type": "application/json",
@@ -71,7 +71,7 @@ export async function deleteForum(uuid) {
   try {
     const response = await axios({
       method: "delete",
-      url: `http://localhost:3000/forum/${uuid}`,
+      url: `https://api-msib-6-forum-diskusi-04.educalab.id/forum/${uuid}`,
       headers: {
         Authorization: `Bearer ${token}`,
       },

@@ -1,7 +1,10 @@
-import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useEffect, useRef, useState } from "react";
+import { Link, useParams } from "react-router-dom";
 import { getQuestionById } from "../../api/questionApi.js";
-import { getCommentsByPostId } from "../../api/commentApi.js";
+import {
+  getCommentsByPostId,
+  deleteCommentById,
+} from "../../api/commentApi.js";
 import { getVotes } from "../../api/voteApi.js";
 import { timeAgo } from "../../utils/timeDistance.js";
 import Sidebar from "../molecules/Sidebar/index.jsx";
@@ -15,13 +18,22 @@ import TypographyText from "../atoms/TypographyText/index.jsx";
 import SubheadingText from "../atoms/SubheadingText/index.jsx";
 import IconPlaceholder from "../atoms/IconPlaceholder/index.jsx";
 import Button from "../atoms/Button/index.jsx";
-import CommentForm from "../organisms/CommentForm/index.jsx";
+import { getUserProfile } from "../../api/userApi.js";
+import Toasts from "../molecules/Toasts/index.jsx";
+import EditCommentForm from "../organisms/EditCommentForm/index.jsx";
+import CreateCommentForm from "../organisms/CreateCommentForm/index.jsx";
+import Cookies from "js-cookie";
+import CommentVote from "../organisms/CommentVote/index.jsx";
+import { getCommentVotes } from "../../api/commentVotesApi.js";
 
 export default function SinglePostQuestionPagesLayout() {
-  const [post, setPost] = useState(null);
+  const [questions, setQuestions] = useState(null);
   const [comments, setComments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [votes, setVotes] = useState(0);
+  const [upVotes, setUpVotes] = useState(0);
+  const [downVotes, setDownVotes] = useState(0);
+  const [profiles, setProfiles] = useState([]);
   const [sortOrder, setSortOrder] = useState("latest");
   const { id } = useParams();
   const [currentPage, setCurrentPage] = useState(1);
@@ -33,12 +45,26 @@ export default function SinglePostQuestionPagesLayout() {
     indexOfFirstComment,
     indexOfLastComment,
   );
+  const [editingComment, setEditingComment] = useState(null);
+  const [showSuccessToast, setShowSuccessToast] = useState(false);
+  const [showFailureToast, setShowFailureToast] = useState(false);
+  const [formValues, setFormValues] = useState({ body: "" });
+  const [commentVotes, setCommentVotes] = useState({});
+  const [commentsData, setCommentsData] = useState([]);
+  const commentFormRef = useRef(null);
 
   useEffect(() => {
+    let isMounted = true;
+
     async function fetchQuestionAndComments() {
       try {
-        const question = await getQuestionById(id);
+        const questions = await getQuestionById(id);
         let comments = await getCommentsByPostId(id);
+        let profile = null;
+        let isGuest = !Cookies.get("user");
+        if (!isGuest) {
+          profile = await getUserProfile();
+        }
         comments = comments.sort((a, b) => {
           if (sortOrder === "latest") {
             return new Date(b.commentedAt) - new Date(a.commentedAt);
@@ -46,18 +72,101 @@ export default function SinglePostQuestionPagesLayout() {
             return new Date(a.commentedAt) - new Date(b.commentedAt);
           }
         });
-        let votes = await getVotes(id);
-        setVotes(votes.length);
-        setPost(question);
-        setComments(comments);
-        setLoading(false);
+        let votes = isGuest ? [] : await getVotes(id);
+        if (isMounted) {
+          setVotes(votes.length);
+          let upVotes = votes.filter((vote) => vote.role === "VOTE");
+          setUpVotes(upVotes.length);
+          let downVotes = votes.filter((vote) => vote.role === "DOWNVOTE");
+          setDownVotes(downVotes.length);
+
+          let commentsData = [];
+          let commentVotesData = {};
+
+          for (let comment of comments) {
+            let commentVotes = isGuest
+              ? []
+              : await getCommentVotes(comment.uuid);
+            let upVotesComments = commentVotes.filter(
+              (commentVote) => commentVote.role === "VOTE",
+            );
+            let downVotesComments = commentVotes.filter(
+              (commentVote) => commentVote.role === "DOWNVOTE",
+            );
+
+            commentVotesData[comment.uuid] = {
+              upVotes: upVotesComments.length,
+              downVotes: downVotesComments.length,
+            };
+
+            commentsData.push({
+              ...comment,
+              upVotes: upVotesComments.length,
+              downVotes: downVotesComments.length,
+            });
+          }
+
+          setCommentsData(commentsData);
+          setCommentVotes(commentVotesData);
+          setProfiles(profile);
+          setComments(comments);
+          setQuestions(questions);
+          setLoading(false);
+        }
       } catch (error) {
         console.error("Error fetching question and comments:", error);
-        setLoading(false);
+        if (isMounted) {
+          setLoading(false);
+        }
       }
     }
+
     fetchQuestionAndComments();
+
+    return () => {
+      isMounted = false;
+    };
   }, [id, sortOrder]);
+
+  const updateCommentVotes = (commentId, upVotes, downVotes) => {
+    setCommentVotes((prevCommentVotes) => ({
+      ...prevCommentVotes,
+      [commentId]: { upVotes, downVotes },
+    }));
+  };
+
+  const handleEditComment = (comment) => {
+    setEditingComment(comment);
+    setFormValues({ body: comment.body });
+    console.log("Editing comment:", comment);
+  };
+
+  useEffect(() => {
+    setFormValues({ body: editingComment ? editingComment.body : "" });
+  }, [editingComment]);
+
+  const handleUpdateComment = (updatedComment) => {
+    setComments((prevComments) =>
+      prevComments.map((comment) =>
+        comment.uuid === updatedComment.uuid ? updatedComment : comment,
+      ),
+    );
+  };
+
+  const handleDeleteComment = async (uuid) => {
+    try {
+      await deleteCommentById(uuid);
+      setComments((prevComments) =>
+        prevComments.filter((comment) => comment.uuid !== uuid),
+      );
+      setShowSuccessToast(true);
+      setTimeout(() => setShowSuccessToast(false), 3000);
+    } catch (error) {
+      console.error("Error deleting comment:", error);
+      setShowFailureToast(true);
+      setTimeout(() => setShowFailureToast(false), 3000);
+    }
+  };
 
   useEffect(() => {
     const sortedComments = [...comments];
@@ -75,6 +184,7 @@ export default function SinglePostQuestionPagesLayout() {
   const handleSortOrderChange = (order, event) => {
     event.preventDefault();
     setSortOrder(order);
+    setCurrentPage(1);
   };
 
   const handleNewComment = (newComment) => {
@@ -90,6 +200,12 @@ export default function SinglePostQuestionPagesLayout() {
     startPage + maxPageNumbersToShow - 1,
     Math.ceil(comments.length / commentsPerPage),
   );
+
+  useEffect(() => {
+    if (editingComment && commentFormRef.current) {
+      commentFormRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [editingComment]);
 
   return (
     <>
@@ -107,25 +223,26 @@ export default function SinglePostQuestionPagesLayout() {
                   variant={"secondary"}
                   className={"col-12"}
                 />
-              ) : post ? (
+              ) : questions ? (
                 <CardPost
-                  title={post.title}
-                  topic={post.topic?.name}
-                  description={post.body}
-                  imageSrc={post.imageUrl}
-                  imageAlt={post.title}
-                  createdAt={new Date(post.createdAt).toLocaleString()}
-                  username={post.createdBy.username}
-                  avatarSrc={post.createdBy.avatar}
-                  avatarAlt={post.createdBy.username}
-                  votes={votes}
+                  title={questions.title}
+                  topic={questions.topic?.name}
+                  description={questions.body}
+                  imageSrc={questions.imageUrl}
+                  imageAlt={questions.title}
+                  createdAt={new Date(questions.createdAt).toLocaleString()}
+                  username={questions.createdBy.username}
+                  avatarSrc={questions.createdBy.avatar}
+                  avatarAlt={questions.createdBy.username}
+                  votes={upVotes}
+                  downvotes={downVotes}
                   answers={comments.length || 0}
                   className={"mb-3"}
                 />
               ) : (
                 <Card>
                   <Card.Title className="d-flex align-items-center justify-content-center fw-semibold">
-                    No post available
+                    No questions available
                   </Card.Title>
                 </Card>
               )}
@@ -179,27 +296,120 @@ export default function SinglePostQuestionPagesLayout() {
                 </div>
               </div>
               <div>
-                <CommentForm onNewComment={handleNewComment} />
+                {editingComment ? (
+                  <div ref={commentFormRef}>
+                    <EditCommentForm
+                      onUpdateComment={handleUpdateComment}
+                      editingComment={editingComment}
+                    />
+                  </div>
+                ) : (
+                  <div ref={commentFormRef}>
+                    <CreateCommentForm onNewComment={handleNewComment} />
+                  </div>
+                )}
               </div>
               {currentComments.map((comment) => (
-                <>
-                  {comment && comment.commentedBy && (
-                    <Card key={comment.uuid} className="mb-3">
-                      <TypographyText cssReset={true}>
-                        {timeAgo(comment.commentedAt)}
+                <Card key={comment.uuid} className="mb-3 w-100 p-3">
+                  <div className="d-flex w-100">
+                    <div className="d-grid justify-content-center me-4 row">
+                      <TypographyText
+                        cssReset={true}
+                        className="col align-self-start"
+                      >
+                        {commentVotes[comment.uuid]?.upVotes || 0}
                       </TypographyText>
+                      <TypographyText
+                        cssReset={true}
+                        className="col align-self-end"
+                      >
+                        {commentVotes[comment.uuid]?.downVotes || 0}
+                      </TypographyText>
+                    </div>
+                    <div className="w-100">
+                      <div className="d-flex justify-content-between m-0 align-items-center">
+                        <TypographyText cssReset={true}>
+                          {timeAgo(comment.commentedAt)}
+                        </TypographyText>
+                        <div className="d-flex gap-2">
+                          {Cookies.get("user") &&
+                            comment.commentedBy.username ===
+                              profiles?.username && (
+                              <>
+                                <Button
+                                  variant={"outline-primary"}
+                                  className="rounded-3 btn-sm mb-1"
+                                  onClick={() => handleEditComment(comment)}
+                                >
+                                  <IconPlaceholder variant={"pencil"} />
+                                </Button>
+                                <Button
+                                  variant={"outline-primary"}
+                                  className="rounded-3 btn-sm mb-1"
+                                  onClick={() =>
+                                    handleDeleteComment(comment.uuid)
+                                  }
+                                >
+                                  <IconPlaceholder variant={"trash"} />
+                                </Button>
+                              </>
+                            )}
+                          {showSuccessToast && (
+                            <Toasts
+                              onClose={() => setShowSuccessToast(false)}
+                              variant={"success"}
+                              variantBody={"success-subtle"}
+                              title={"Success"}
+                              titleColor={"white"}
+                              description={
+                                "Comment has been successfully deleted."
+                              }
+                            />
+                          )}
+                          {showFailureToast && (
+                            <Toasts
+                              onClose={() => setShowFailureToast(false)}
+                              variant={"danger"}
+                              variantBody={"danger-subtle"}
+                              title={"Failure"}
+                              titleColor={"white"}
+                              description={"Failed to delete comment."}
+                            />
+                          )}
+                        </div>
+                      </div>
                       <SubheadingText
                         cssReset={true}
                         className="fw-semibold text-primary"
                       >
-                        {comment.commentedBy.username}
+                        <Link
+                          to={`/profile/${comment.commentedBy.username}`}
+                          className="text-decoration-none"
+                        >
+                          {comment.commentedBy.username}
+                        </Link>
                       </SubheadingText>
-                      <TypographyText cssReset={true}>
+                      <TypographyText
+                        cssReset={true}
+                        className="py-2 text-break"
+                      >
                         {comment.body}
                       </TypographyText>
-                    </Card>
-                  )}
-                </>
+                      <div className="d-flex gap-2 align-items-center m-0 mt-2">
+                        {comment && comment.uuid && (
+                          <>
+                            <CommentVote
+                              commentId={comment.uuid}
+                              initialUpvoteStatus={comment.upVotes > 0}
+                              initialDownvoteStatus={comment.downVotes > 0}
+                              updateCommentVotes={updateCommentVotes}
+                            />{" "}
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </Card>
               ))}
               <div className="justify-content-center d-flex">
                 <ul className="pagination">

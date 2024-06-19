@@ -5,7 +5,7 @@ export async function getTopics() {
   try {
     const response = await axios({
       method: "get",
-      url: `http://localhost:3000/topics`,
+      url: `https://api-msib-6-forum-diskusi-04.educalab.id/topics`,
       headers: { "Content-Type": "application/json" },
     });
     return response.data;
@@ -18,7 +18,7 @@ export async function getTopicById(id) {
   try {
     const response = await axios({
       method: "get",
-      url: `http://localhost:3000/topic/${id}`,
+      url: `https://api-msib-6-forum-diskusi-04.educalab.id/topic/${id}`,
       headers: { "Content-Type": "application/json" },
     });
     return response.data;
@@ -33,7 +33,7 @@ export async function createTopic(data) {
   try {
     const response = await axios({
       method: "post",
-      url: `http://localhost:3000/topic`,
+      url: `https://api-msib-6-forum-diskusi-04.educalab.id/topic`,
       data: data,
       headers: {
         "Content-Type": "application/json",
@@ -52,7 +52,7 @@ export async function updateTopic(id, data) {
   try {
     const response = await axios({
       method: "put",
-      url: `http://localhost:3000/topic/${id}`,
+      url: `https://api-msib-6-forum-diskusi-04.educalab.id/topic/${id}`,
       data: data,
       headers: {
         "Content-Type": "application/json",
@@ -71,7 +71,7 @@ export async function deleteTopic(uuid) {
   try {
     const response = await axios({
       method: "delete",
-      url: `http://localhost:3000/topic/${uuid}`,
+      url: `https://api-msib-6-forum-diskusi-04.educalab.id/topic/${uuid}`,
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,

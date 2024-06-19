@@ -10,6 +10,7 @@ export default function CardHeader({
   description,
   buttonTitle,
   toastsMessage,
+  showButton = true,
 }) {
   const token = Cookies.get("jwt");
   const navigate = useNavigate();
@@ -21,7 +22,7 @@ export default function CardHeader({
       setShowToast(true);
       setTimeout(() => setShowToast(false), 3000);
     } else {
-      navigate("/dashboard");
+      navigate("/dashboard/create-question");
     }
   };
 
@@ -33,13 +34,15 @@ export default function CardHeader({
     <Card className="shadow-sm p-3">
       <div className="d-flex justify-content-between mb-3">
         <Card.Title className="fw-semibold text-primary">{title}</Card.Title>
-        <Button
-          variant="primary"
-          onClick={handleAskQuestionClick}
-          className="rounded-3"
-        >
-          {buttonTitle}
-        </Button>
+        {showButton && (
+          <Button
+            variant="primary"
+            onClick={handleAskQuestionClick}
+            className="rounded-3"
+          >
+            {buttonTitle}
+          </Button>
+        )}
       </div>
       <Card.Description className="lh-base">{description}</Card.Description>
 

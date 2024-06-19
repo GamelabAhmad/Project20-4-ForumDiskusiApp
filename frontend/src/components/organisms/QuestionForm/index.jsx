@@ -3,9 +3,14 @@ import InputForm from "../../molecules/InputForm/index.jsx";
 import Button from "../../atoms/Button/index.jsx";
 import { createQuestion } from "../../../api/questionApi";
 import { getTopics } from "../../../api/topicApi.js";
+import Toasts from "../../molecules/Toasts/index.jsx";
+import { useNavigate } from "react-router-dom";
 
 export default function QuestionForm() {
+  const navigate = useNavigate();
   const [topics, setTopics] = useState([]);
+  const [showSuccessToast, setShowSuccessToast] = useState(false);
+  const [showFailureToast, setShowFailureToast] = useState(false);
 
   const [formValues, setFormValues] = useState({
     title: "",
@@ -30,20 +35,26 @@ export default function QuestionForm() {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
+    const fileInput = document.getElementById("image");
+    const image = fileInput.files[0];
 
     try {
       const questionData = {
         title: formValues.title,
         body: formValues.body,
-        image: formValues.image,
+        image: image,
         topic: formValues.topic,
       };
 
       const formData = await createQuestion(questionData);
       console.log("Question created:", formData);
-      window.location.href = `/dashboard`;
+      setShowSuccessToast(true);
+      setTimeout(() => {
+        navigate("/dashboard");
+      }, 1500);
     } catch (error) {
       console.error("Error:", error);
+      setShowFailureToast(true);
     }
   };
 
@@ -121,6 +132,26 @@ export default function QuestionForm() {
           className="mt-1 w-100 rounded-3 mb-4"
         />
       </form>
+      {showSuccessToast && (
+        <Toasts
+          onClose={() => setShowSuccessToast(false)}
+          variant={"success"}
+          variantBody={"success-subtle"}
+          title={"Success"}
+          titleColor={"white"}
+          description={"Question has been successfully posted."}
+        />
+      )}
+      {showFailureToast && (
+        <Toasts
+          onClose={() => setShowFailureToast(false)}
+          variant={"danger"}
+          variantBody={"danger-subtle"}
+          title={"Failure"}
+          titleColor={"white"}
+          description={"You must be logged in to post a question."}
+        />
+      )}
     </>
   );
 }

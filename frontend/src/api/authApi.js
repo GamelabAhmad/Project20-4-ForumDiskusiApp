@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const instance = axios.create({
-  baseURL: "http://localhost:3000",
+  baseURL: "https://api-msib-6-forum-diskusi-04.educalab.id",
   withCredentials: true,
 });
 
