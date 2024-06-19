@@ -48,7 +48,12 @@ const handleSignIn = async (req, res) => {
       },
       process.env.JWT_SECRET
     );
-    res.cookie("jwt", token, { httpOnly: false, maxAge: 6 * 60 * 60 * 1000 });
+    res.cookie("jwt", token, {
+      httpOnly: true,
+      secure: true, 
+      sameSite: 'None',
+      maxAge: 6 * 60 * 60 * 1000 // 6 jam
+    });
     res.cookie('user', (user.username), { httpOnly: false });
     res.status(200).json({ message: "Login successful", user: user, token });
   } catch (error) {
