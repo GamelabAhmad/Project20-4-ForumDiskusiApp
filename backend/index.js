@@ -27,25 +27,23 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(fileUpload({ useTempFiles: true }));
 app.use(cookieParser());
-const allowedOrigins = ["https://fe-msib-6-forum-diskusi-04.educalab.id/"];
 
 app.use(
   cors({
     origin: function (origin, callback) {
-      // allow requests with no origin
-      // (like mobile apps or curl requests)
-      if (!origin) return callback(null, true);
-      if (allowedOrigins.indexOf(origin) === -1) {
-        var msg =
-          "The CORS policy for this site does not " +
-          "allow access from the specified Origin.";
-        return callback(new Error(msg), false);
-      }
-      return callback(null, true);
+      callback(null, true);
     },
-    credentials: true, // This will allow cookies to be included in the request
+    credentials: true,
   })
 );
+app.get('/setcookie', (req, res) => {
+  res.cookie('token', 'token', {
+    httpOnly: true,
+    secure: true,
+    sameSite: 'None',
+  });
+  res.send('Cookie set');
+});
 
 app.get("/", (req, res) => {
   res.send("Hello World!");
