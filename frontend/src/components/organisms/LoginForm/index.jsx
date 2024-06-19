@@ -4,7 +4,6 @@ import Button from "../../atoms/Button/index.jsx";
 import { signIn } from "../../../api/authApi.js";
 import { loginValidationSchema } from "../../../utils/authValidation";
 import * as yup from "yup";
-import Cookies from "js-cookie";
 
 export default function LoginForm() {
   const [formValues, setFormValues] = useState({
@@ -13,8 +12,6 @@ export default function LoginForm() {
   });
   const [errors, setErrors] = useState({});
   const [errorMessage, setErrorMessage] = useState(null);
-  const token = Cookies.getItem("jwt");
-
 
   const handleChange = (event) => {
     setFormValues({
@@ -29,7 +26,6 @@ export default function LoginForm() {
     try {
       await loginValidationSchema.validate(formValues, { abortEarly: false });
       await signIn(formValues.username, formValues.password);
-
       window.location.href = "/";
     } catch (error) {
       if (error instanceof yup.ValidationError) {
