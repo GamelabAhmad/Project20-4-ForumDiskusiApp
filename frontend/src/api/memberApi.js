@@ -1,13 +1,11 @@
-import axios from "axios";
-import Cookies from "js-cookie";
+import api from './baseApi';
+import Cookies from 'js-cookie';
 
 export async function joinForum(uuid) {
   const token = Cookies.get("jwt");
 
   try {
-    const response = await axios({
-      method: "post",
-      url: `https://api-msib-6-forum-diskusi-04.educalab.id/member/${uuid}`,
+    const response = await api.post(`/member/${uuid}`, {}, {
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
@@ -23,9 +21,7 @@ export async function leaveForum(uuid) {
   const token = Cookies.get("jwt");
 
   try {
-    const response = await axios({
-      method: "delete",
-      url: `https://api-msib-6-forum-diskusi-04.educalab.id/member/${uuid}`,
+    const response = await api.delete(`/member/${uuid}`, {
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
@@ -41,9 +37,7 @@ export async function userMemberForum(uuid) {
   const token = Cookies.get("jwt");
 
   try {
-    const response = await axios({
-      method: "get",
-      url: `https://api-msib-6-forum-diskusi-04.educalab.id/membership/${uuid}`,
+    const response = await api.get(`/membership/${uuid}`, {
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,

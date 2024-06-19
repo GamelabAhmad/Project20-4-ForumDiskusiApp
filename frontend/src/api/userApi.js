@@ -1,5 +1,5 @@
-import axios from "axios";
-import Cookies from "js-cookie";
+import api from './baseApi';
+import Cookies from 'js-cookie';
 
 export async function getUserProfile() {
   const token = Cookies.get("jwt");
@@ -9,9 +9,7 @@ export async function getUserProfile() {
   }
 
   try {
-    const response = await axios({
-      method: "get",
-      url: `https://api-msib-6-forum-diskusi-04.educalab.id/profile/`,
+    const response = await api.get(`/profile/`, {
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
@@ -25,11 +23,7 @@ export async function getUserProfile() {
 
 export async function getUserByUsername(id) {
   try {
-    const response = await axios({
-      method: "get",
-      url: `https://api-msib-6-forum-diskusi-04.educalab.id/profile/${id}`,
-      headers: { "Content-Type": "application/json" },
-    });
+    const response = await api.get(`/profile/${id}`);
     return response.data;
   } catch (error) {
     throw error;
@@ -40,14 +34,11 @@ export async function updateUser(username, data) {
   const token = Cookies.get("jwt");
 
   try {
-    const response = await axios({
-      method: "put",
-      url: `https://api-msib-6-forum-diskusi-04.educalab.id/setting/${username}`,
+    const response = await api.put(`/setting/${username}`, data, {
       headers: {
         "Content-Type": "multipart/form-data",
         Authorization: `Bearer ${token}`,
       },
-      data,
     });
     return response.data;
   } catch (error) {

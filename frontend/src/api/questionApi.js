@@ -1,13 +1,9 @@
-import axios from "axios";
-import Cookies from "js-cookie";
+import api from './baseApi';
+import Cookies from 'js-cookie';
 
 export async function getQuestions() {
   try {
-    const response = await axios({
-      method: "get",
-      url: "https://api-msib-6-forum-diskusi-04.educalab.id/questions",
-      headers: { "Content-Type": "application/json" },
-    });
+    const response = await api.get(`/questions`);
     return response.data;
   } catch (error) {
     throw error;
@@ -18,9 +14,7 @@ export async function getQuestionsByUser() {
   const token = Cookies.get("jwt");
 
   try {
-    const response = await axios({
-      method: "get",
-      url: "https://api-msib-6-forum-diskusi-04.educalab.id/questionByUser",
+    const response = await api.get(`/questionByUser`, {
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
@@ -34,11 +28,7 @@ export async function getQuestionsByUser() {
 
 export async function getQuestionById(id) {
   try {
-    const response = await axios({
-      method: "get",
-      url: `https://api-msib-6-forum-diskusi-04.educalab.id/question/${id}`,
-      headers: { "Content-Type": "application/json" },
-    });
+    const response = await api.get(`/question/${id}`);
     return response.data;
   } catch (error) {
     throw error;
@@ -47,13 +37,7 @@ export async function getQuestionById(id) {
 
 export async function getQuestionByUser(uuid) {
   try {
-    const response = await axios({
-      method: "get",
-      url: `https://api-msib-6-forum-diskusi-04.educalab.id/questionByUser/${uuid}`,
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
+    const response = await api.get(`/questionByUser/${uuid}`);
     return response.data;
   } catch (error) {
     throw error;
@@ -62,11 +46,7 @@ export async function getQuestionByUser(uuid) {
 
 export async function getQuestionsByTopic(uuid) {
   try {
-    const response = await axios({
-      method: "get",
-      url: `https://api-msib-6-forum-diskusi-04.educalab.id/questionsByTopic/${uuid}`,
-      headers: { "Content-Type": "application/json" },
-    });
+    const response = await api.get(`/questionsByTopic/${uuid}`);
     return response.data;
   } catch (error) {
     throw error;
@@ -77,9 +57,7 @@ export async function getQuestionsByForum(uuid) {
   const token = Cookies.get("jwt");
 
   try {
-    const response = await axios({
-      method: "get",
-      url: `https://api-msib-6-forum-diskusi-04.educalab.id/questionsByForum/${uuid}`,
+    const response = await api.get(`/questionsByForum/${uuid}`, {
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
@@ -100,10 +78,7 @@ export async function createQuestion(data) {
   }
 
   try {
-    const response = await axios({
-      method: "post",
-      url: `https://api-msib-6-forum-diskusi-04.educalab.id/question`,
-      data: formData,
+    const response = await api.post(`/question`, formData, {
       headers: {
         "Content-Type": "multipart/form-data",
         Authorization: `Bearer ${token}`,
@@ -124,10 +99,7 @@ export async function createQuestionsByForum(uuid, data) {
   }
 
   try {
-    const response = await axios({
-      method: "post",
-      url: `https://api-msib-6-forum-diskusi-04.educalab.id/questionsByForum/${uuid}`,
-      data: formData,
+    const response = await api.post(`/questionsByForum/${uuid}`, formData, {
       headers: {
         "Content-Type": "multipart/form-data",
         Authorization: `Bearer ${token}`,
@@ -148,14 +120,11 @@ export async function updateQuestion(id, data) {
   }
 
   try {
-    const response = await axios({
-      method: "put",
-      url: `https://api-msib-6-forum-diskusi-04.educalab.id/question/${id}`,
+    const response = await api.put(`/question/${id}`, formData, {
       headers: {
         "Content-Type": "multipart/form-data",
         Authorization: `Bearer ${token}`,
       },
-      data: formData,
     });
     return response.data;
   } catch (error) {
@@ -167,9 +136,7 @@ export async function deleteQuestion(uuid) {
   const token = Cookies.get("jwt");
 
   try {
-    const response = await axios({
-      method: "delete",
-      url: `https://api-msib-6-forum-diskusi-04.educalab.id/question/${uuid}`,
+    const response = await api.delete(`/question/${uuid}`, {
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,

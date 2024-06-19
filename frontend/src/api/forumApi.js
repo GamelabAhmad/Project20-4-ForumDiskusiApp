@@ -1,13 +1,9 @@
-import axios from "axios";
-import Cookies from "js-cookie";
+import api from './baseApi';
+import Cookies from 'js-cookie';
 
 export async function getForums() {
   try {
-    const response = await axios({
-      method: "get",
-      url: "https://api-msib-6-forum-diskusi-04.educalab.id/forums",
-      headers: { "Content-Type": "application/json" },
-    });
+    const response = await api.get(`/forums`);
     return response.data;
   } catch (error) {
     throw error;
@@ -16,11 +12,7 @@ export async function getForums() {
 
 export async function getForumById(id) {
   try {
-    const response = await axios({
-      method: "get",
-      url: `https://api-msib-6-forum-diskusi-04.educalab.id/forum/${id}`,
-      headers: { "Content-Type": "application/json" },
-    });
+    const response = await api.get(`/forum/${id}`);
     return response.data;
   } catch (error) {
     throw error;
@@ -31,10 +23,7 @@ export async function createForum(data) {
   const token = Cookies.get("jwt");
 
   try {
-    const response = await axios({
-      method: "post",
-      url: `https://api-msib-6-forum-diskusi-04.educalab.id/forum`,
-      data: data,
+    const response = await api.post(`/forum`, data, {
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
@@ -50,10 +39,7 @@ export async function updateForum(id, data) {
   const token = Cookies.get("jwt");
 
   try {
-    const response = await axios({
-      method: "put",
-      url: `https://api-msib-6-forum-diskusi-04.educalab.id/forum/${id}`,
-      data: data,
+    const response = await api.put(`/forum/${id}`, data, {
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
@@ -69,9 +55,7 @@ export async function deleteForum(uuid) {
   const token = Cookies.get("jwt");
 
   try {
-    const response = await axios({
-      method: "delete",
-      url: `https://api-msib-6-forum-diskusi-04.educalab.id/forum/${uuid}`,
+    const response = await api.delete(`/forum/${uuid}`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
