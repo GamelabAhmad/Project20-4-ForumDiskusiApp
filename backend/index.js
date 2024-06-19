@@ -27,7 +27,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(fileUpload({ useTempFiles: true }));
 app.use(cookieParser());
-const allowedOrigins = ["http://localhost:3000", "http://localhost:5173"];
+const allowedOrigins = ["https://fe-msib-6-forum-diskusi-04.educalab.id/"];
 
 app.use(
   cors({
