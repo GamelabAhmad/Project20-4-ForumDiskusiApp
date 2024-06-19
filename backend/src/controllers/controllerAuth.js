@@ -54,7 +54,9 @@ const handleSignIn = async (req, res) => {
       sameSite: 'None',
       maxAge: 6 * 60 * 60 * 1000 // 6 jam
     });
-    res.cookie('user', (user.username), { httpOnly: false });
+    res.cookie('user', (user.username), { httpOnly: false,
+      secure: true, 
+      sameSite: 'None', });
     res.status(200).json({ message: "Login successful", user: user, token });
   } catch (error) {
     res.status(400).send({ error: error.message });
