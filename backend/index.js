@@ -30,11 +30,20 @@ app.use(cookieParser());
 
 app.use(
   cors({
-    origin: true,
+    origin: function (origin, callback) {
+      callback(null, true);
+    },
     credentials: true,
   })
 );
-
+app.get('/setcookie', (req, res) => {
+  res.cookie('token', 'token', {
+    httpOnly: true,
+    secure: true,
+    sameSite: 'None',
+  });
+  res.send('Cookie set');
+});
 
 app.get("/", (req, res) => {
   res.send("Hello World!");
