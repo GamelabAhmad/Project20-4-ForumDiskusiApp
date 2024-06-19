@@ -18,6 +18,7 @@ export default function Navbar() {
   useEffect(() => {
     const checkToken = () => {
       const jwt = Cookies.get("jwt");
+
       setToken(jwt);
     };
     checkToken();
