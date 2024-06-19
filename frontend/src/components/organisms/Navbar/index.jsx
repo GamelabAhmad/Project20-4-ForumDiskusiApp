@@ -5,7 +5,6 @@ import ContainerLayout from "../../templates/ContainerLayout.jsx";
 import Button from "../../atoms/Button/index.jsx";
 import IconPlaceholder from "../../atoms/IconPlaceholder/index.jsx";
 import Cookies from "js-cookie";
-import SearchBarForm from "../SearchBarForm/index.jsx";
 
 export default function Navbar() {
   const user = Cookies.get("user");
