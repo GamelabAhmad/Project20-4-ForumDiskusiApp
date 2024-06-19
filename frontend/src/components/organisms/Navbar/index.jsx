@@ -14,11 +14,9 @@ export default function Navbar() {
   );
   const [token, setToken] = useState(Cookies.get("jwt"));
 
-
   useEffect(() => {
     const checkToken = () => {
       const jwt = Cookies.get("jwt");
-
       setToken(jwt);
     };
     checkToken();

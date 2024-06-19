@@ -29,7 +29,6 @@ export default function LoginForm() {
     try {
       await loginValidationSchema.validate(formValues, { abortEarly: false });
       await signIn(formValues.username, formValues.password);
-
       window.location.href = "/";
     } catch (error) {
       if (error instanceof yup.ValidationError) {
