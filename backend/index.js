@@ -36,14 +36,6 @@ app.use(
     credentials: true,
   })
 );
-app.get('/setcookie', (req, res) => {
-  res.cookie('jwt', 'token', {
-    httpOnly: true,
-    secure: true,
-    sameSite: 'None',
-  });
-  res.send('Cookie set');
-});
 
 app.get("/", (req, res) => {
   res.send("Hello World!");
