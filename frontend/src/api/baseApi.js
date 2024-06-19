@@ -6,13 +6,11 @@ const api = axios.create({
 });
 api.interceptors.response.use(
   (response) => {
-    const setCookieHeader = response.headers['set-cookie'];
-    if (setCookieHeader) {
-      const tokenCookie = setCookieHeader.find(cookie => cookie.startsWith('token='));
-      if (tokenCookie) {
-        const tokenValue = tokenCookie.split(';')[0].split('=')[1];
-        localStorage.setItem('token', tokenValue);
-      }
+    if (response.data.token) {
+      localStorage.setItem('token', response.data.token);
+    }
+    if (response.data.user && response.data.user.username) {
+      localStorage.setItem('username', response.data.user.username);
     }
     return response;
   },
